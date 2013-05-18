@@ -1,7 +1,7 @@
 class FlightsController < ApplicationController
   
-  respond_to :html, :json
-  
+  respond_to :json
+  respond_to :html, only: [:index, :show]
   def index
     respond_with(@flights = Flight.all)
   end
@@ -11,7 +11,7 @@ class FlightsController < ApplicationController
   end
   
   def create
-    respond_with(@flight = Flight.create)
+    respond_with (@flight = Flight.create)
   end
   
   def update
