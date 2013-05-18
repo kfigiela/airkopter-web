@@ -18,18 +18,98 @@
   %tbody.flight_datas
     - @flight.flight_datas.order(:timestamp).each do |data|
       %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration, 'data-temperature' => data.temperature, 'data-humidity' => data.humidity}
-        %td= data.timestamp.strftime("%H:%n:%S")
+        %td= data.timestamp.strftime("%H:%M:%S")
         %td= data.lat
         %td= data.lon
         %td= data.concentration
         %td= data.temperature
         %td= data.humidity    
+
+- content_for :header do
+  = javascript_include_tag "http://d3js.org/d3.v3.min.js"
+  :css
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .x.axis path {
+      display: none;
+    }
+
+    .line {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 1.5px;
+    }
+
 :javascript
   var map;
   
-  google.load("visualization", "1", {packages:["corechart"]});
-  
   function initialize() {
+    var margin = {top: 20, right: 20, bottom: 30, left: 70},
+        width = 500 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+    var x = d3.time.scale()
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .range([height, 0]);
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .ticks(5)
+        .tickFormat(d3.time.format.utc("%H:%M"))
+        .orient("bottom");
+
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+
+    var line = d3.svg.line()
+        .x(function(d) { return x(d.date); })
+        .y(function(d) { return y(d.close); });
+
+    var svg = d3.select("#chart").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var data = [];
+    $("tbody.flight_datas tr").each(function(idx, tr){
+      data.push({date: $(tr).data("time"), close: parseFloat($(tr).data("concentration"))});
+    });
+
+    data.forEach(function(d) {
+      d.date = new Date(d.date * 1000);
+    });
+
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    y.domain(d3.extent(data, function(d) { return d.close; }));
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Concentration");
+
+    svg.append("path")
+        .datum(data)
+        .attr("class", "line")
+        .attr("d", line);
   
     var first = new google.maps.LatLng(#{@flight.flight_datas.first.lat}, #{@flight.flight_datas.first.lon});
     var bounds = new google.maps.LatLngBounds(first, first);
@@ -40,7 +120,6 @@
       var point = new google.maps.LatLng(parseFloat($(tr).data("lat")), parseFloat($(tr).data("lon")));
       bounds.extend(point);
       points.push(point);
-      chartpoints.push([parseInt($(tr).data("time"))-offset, parseFloat($(tr).data("concentration"))]);
     });
     
     
@@ -59,23 +138,6 @@
     });
     flightPath.setMap(map);
     map.fitBounds(bounds);
-    
-    function drawChart(){
-      var data = google.visualization.arrayToDataTable(chartpoints);
-      console.log(chartpoints);
-      var chart = new google.visualization.LineChart(document.getElementById('chart'));
-    
-      var options = {
-        legend: {position: "none"},
-        vAxis: {title: ">0.5 micron particles per 0.01 cubic feet", textPosition: "in"},
-        hAxis: {title: "Time (seconds)"},
-        height: 400       
-      };
-    
-      chart.draw(data, options);
-    }
-    
-    drawChart();
   }
   
 
