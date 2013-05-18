@@ -114,7 +114,6 @@
     var first = new google.maps.LatLng(#{@flight.flight_datas.first.lat}, #{@flight.flight_datas.first.lon});
     var bounds = new google.maps.LatLngBounds(first, first);
     var points = [];
-    var chartpoints = [['Time', 'Concentration']];
     var offset = #{@flight.flight_datas.first.timestamp.to_i};
     $("tbody.flight_datas tr").each(function(idx, tr){
       var point = new google.maps.LatLng(parseFloat($(tr).data("lat")), parseFloat($(tr).data("lon")));
