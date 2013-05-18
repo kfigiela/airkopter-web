@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  flight: 
+  lat: 1.5
+  lon: 1.5
+  ratio: 1.5
+  concentration: 1.5
+  timestamp: 2013-05-18 17:42:25
+
+two:
+  flight: 
+  lat: 1.5
+  lon: 1.5
+  ratio: 1.5
+  concentration: 1.5
+  timestamp: 2013-05-18 17:42:25
