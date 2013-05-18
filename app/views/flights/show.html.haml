@@ -1,31 +1,29 @@
 %h2 Flight AK #{@flight.id} @ #{@flight.created_at}
 
 .row-fluid
-  .span4
-    %table.table
-      %thead
-        %tr
-          %th Time
-          %th Latitude
-          %th Longtitude
-          %th Concentration
-          %th Temperature
-          %th Humidity
-      %tbody.flight_datas
-        - @flight.flight_datas.order(:timestamp).each do |data|
-          %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration, 'data-temperature' => data.temperature, 'data-humidity' => data.humidity}
-            %td= data.timestamp.strftime("%H:%m:%S")
-            %td= data.lat
-            %td= data.lon
-            %td= data.concentration
-            %td= data.temperature
-            %td= data.humidity
-  .span4 
+  .span6
     .well
       #chart
-  .span4
+  .span6
     #map(style="width:100%; height:300px;")
-    
+%table.table
+  %thead
+    %tr
+      %th Time
+      %th Latitude
+      %th Longtitude
+      %th Concentration
+      %th Temperature
+      %th Humidity
+  %tbody.flight_datas
+    - @flight.flight_datas.order(:timestamp).each do |data|
+      %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration, 'data-temperature' => data.temperature, 'data-humidity' => data.humidity}
+        %td= data.timestamp.strftime("%H:%n:%S")
+        %td= data.lat
+        %td= data.lon
+        %td= data.concentration
+        %td= data.temperature
+        %td= data.humidity    
 :javascript
   var map;
   
