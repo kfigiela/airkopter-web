@@ -9,13 +9,17 @@
           %th Latitude
           %th Longtitude
           %th Concentration
+          %th Temperature
+          %th Humidity
       %tbody.flight_datas
         - @flight.flight_datas.order(:timestamp).each do |data|
-          %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration}
+          %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration, 'data-temperature' => data.temperature, 'data-humidity' => data.humidity}
             %td= data.timestamp.strftime("%H:%m:%S")
             %td= data.lat
             %td= data.lon
             %td= data.concentration
+            %td= data.temperature
+            %td= data.humidity
   .span4 
     .well
       #chart
