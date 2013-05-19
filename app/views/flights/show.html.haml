@@ -47,6 +47,7 @@
 
 :javascript
   var map;
+  matchData = true;
   
   function initialize() {
     var margin = {top: 20, right: 20, bottom: 30, left: 70},
@@ -71,7 +72,7 @@
 
     var line = d3.svg.line()
         .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.close); });
+        .y(function(d) { return y(d.concentration); });
 
     var svg = d3.select("#chart").append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -81,7 +82,7 @@
 
     var data = [];
     $("tbody.flight_datas tr").each(function(idx, tr){
-      data.push({date: $(tr).data("time"), close: parseFloat($(tr).data("concentration"))});
+      data.push({date: $(tr).data("time"), concentration: parseFloat($(tr).data("concentration"))});
     });
 
     data.forEach(function(d) {
@@ -89,7 +90,7 @@
     });
 
     x.domain(d3.extent(data, function(d) { return d.date; }));
-    y.domain(d3.extent(data, function(d) { return d.close; }));
+    y.domain(d3.extent(data, function(d) { return d.concentration; }));
 
     svg.append("g")
         .attr("class", "x axis")
@@ -110,6 +111,19 @@
         .datum(data)
         .attr("class", "line")
         .attr("d", line);
+
+    svg.on("click", function() {
+        matchData = !matchData;
+        if (matchData)
+          domain = d3.extent(data, function(d) { return d.concentration; });
+        else
+          domain = [0, 5000];
+        console.log("on click");
+        y.domain(domain);
+        var t = svg.transition().duration(750);
+        t.select(".y.axis").call(yAxis);
+        t.select(".line").attr("d", line(data));
+      });
   
     var first = new google.maps.LatLng(#{@flight.flight_datas.first.lat}, #{@flight.flight_datas.first.lon});
     var bounds = new google.maps.LatLngBounds(first, first);
