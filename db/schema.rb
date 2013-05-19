@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130518201837) do
+ActiveRecord::Schema.define(:version => 20130519090400) do
 
   create_table "flight_data", :force => true do |t|
     t.integer  "flight_id"
@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(:version => 20130518201837) do
     t.datetime "timestamp"
     t.float    "humidity"
     t.float    "temperature"
+    t.float    "altitude"
   end
 
   create_table "flights", :force => true do |t|
