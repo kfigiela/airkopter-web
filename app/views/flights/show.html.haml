@@ -1,159 +1,161 @@
 %h2 Flight AK #{@flight.id} @ #{@flight.created_at}
+- if @flight.flight_datas.count == 0
+  .well
+    %p No sensor data available for this flight.
+- else
+  .row-fluid
+    .span4
+      .well
+        #chart(style="width:100%; height:300px;")
+    .span4
+      #map(style="width:100%; height:340px;")
+    .span4
+      %table.table
+        %thead
+          %tr
+            %th Time
+            %th Concentration
+            %th Altitude
+            %th Temperature
+            %th Humidity
+        %tbody.flight_datas
+          - @flight.flight_datas.order(:timestamp).each do |data|
+            %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration, 'data-temperature' => data.temperature, 'data-humidity' => data.humidity}
+              %td= data.timestamp.strftime("%H:%M:%S")
+              %td.numeric= data.altitude
+              %td.numeric= data.concentration
+              %td.numeric= data.temperature
+              %td.numeric= data.humidity    
 
-.row-fluid
-  .span6
-    .well
-      #chart
-  .span6
-    #map(style="width:100%; height:300px;")
-%table.table
-  %thead
-    %tr
-      %th Time
-      %th Latitude
-      %th Longtitude
-      %th Concentration
-      %th Temperature
-      %th Humidity
-  %tbody.flight_datas
-    - @flight.flight_datas.order(:timestamp).each do |data|
-      %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration, 'data-temperature' => data.temperature, 'data-humidity' => data.humidity}
-        %td= data.timestamp.strftime("%H:%M:%S")
-        %td= data.lat
-        %td= data.lon
-        %td= data.concentration
-        %td= data.temperature
-        %td= data.humidity    
+      - content_for :header do
+        = javascript_include_tag "http://d3js.org/d3.v3.min.js"
+        :css
+          .axis path,
+          .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+          }
 
-- content_for :header do
-  = javascript_include_tag "http://d3js.org/d3.v3.min.js"
-  :css
-    .axis path,
-    .axis line {
-      fill: none;
-      stroke: #000;
-      shape-rendering: crispEdges;
-    }
+          .x.axis path {
+            display: none;
+          }
 
-    .x.axis path {
-      display: none;
-    }
+          .line {
+            fill: none;
+            stroke: steelblue;
+            stroke-width: 1.5px;
+          }
 
-    .line {
-      fill: none;
-      stroke: steelblue;
-      stroke-width: 1.5px;
-    }
+      :javascript
+        var map;
+        matchData = true;
 
-:javascript
-  var map;
-  matchData = true;
+        function initialize() {
+          var margin = {top: 20, right: 20, bottom: 30, left: 70},
+              width = $('#chart')[0].clientWidth-90,
+              height = 300-40;
+
+          var x = d3.time.scale()
+              .range([0, width]);
+
+          var y = d3.scale.linear()
+              .range([height, 0]);
+
+          var xAxis = d3.svg.axis()
+              .scale(x)
+              .ticks(5)
+              .tickFormat(d3.time.format.utc("%H:%M"))
+              .orient("bottom");
+
+          var yAxis = d3.svg.axis()
+              .scale(y)
+              .orient("left");
+
+          var line = d3.svg.line()
+              .x(function(d) { return x(d.date); })
+              .y(function(d) { return y(d.concentration); });
+
+          var svg = d3.select("#chart").append("svg")
+              .attr("width", width + margin.left + margin.right)
+              .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          var data = [];
+          $("tbody.flight_datas tr").each(function(idx, tr){
+            data.push({date: $(tr).data("time"), concentration: parseFloat($(tr).data("concentration"))});
+          });
+
+          data.forEach(function(d) {
+            d.date = new Date(d.date * 1000);
+          });
+
+          x.domain(d3.extent(data, function(d) { return d.date; }));
+          y.domain(d3.extent(data, function(d) { return d.concentration; }));
+
+          svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis);
+
+          svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis)
+            .append("text")
+              .attr("transform", "rotate(-90)")
+              .attr("y", 6)
+              .attr("dy", ".71em")
+              .style("text-anchor", "end")
+              .text("Concentration");
+
+          svg.append("path")
+              .datum(data)
+              .attr("class", "line")
+              .attr("d", line);
+
+          svg.on("click", function() {
+              matchData = !matchData;
+              if (matchData)
+                domain = d3.extent(data, function(d) { return d.concentration; });
+              else
+                domain = [0, 5000];
+              console.log("on click");
+              y.domain(domain);
+              var t = svg.transition().duration(750);
+              t.select(".y.axis").call(yAxis);
+              t.select(".line").attr("d", line(data));
+            });
+
+          var first = new google.maps.LatLng(#{@flight.flight_datas.first.lat.to_f}, #{@flight.flight_datas.first.lon.to_f});
+          var bounds = new google.maps.LatLngBounds(first, first);
+          var points = [];
+          var offset = #{@flight.flight_datas.first.timestamp.to_i};
+          $("tbody.flight_datas tr").each(function(idx, tr){
+            var point = new google.maps.LatLng(parseFloat($(tr).data("lat")), parseFloat($(tr).data("lon")));
+            bounds.extend(point);
+            points.push(point);
+          });
   
-  function initialize() {
-    var margin = {top: 20, right: 20, bottom: 30, left: 70},
-        width = 500 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
-
-    var x = d3.time.scale()
-        .range([0, width]);
-
-    var y = d3.scale.linear()
-        .range([height, 0]);
-
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .ticks(5)
-        .tickFormat(d3.time.format.utc("%H:%M"))
-        .orient("bottom");
-
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left");
-
-    var line = d3.svg.line()
-        .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.concentration); });
-
-    var svg = d3.select("#chart").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    var data = [];
-    $("tbody.flight_datas tr").each(function(idx, tr){
-      data.push({date: $(tr).data("time"), concentration: parseFloat($(tr).data("concentration"))});
-    });
-
-    data.forEach(function(d) {
-      d.date = new Date(d.date * 1000);
-    });
-
-    x.domain(d3.extent(data, function(d) { return d.date; }));
-    y.domain(d3.extent(data, function(d) { return d.concentration; }));
-
-    svg.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
-
-    svg.append("g")
-        .attr("class", "y axis")
-        .call(yAxis)
-      .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text("Concentration");
-
-    svg.append("path")
-        .datum(data)
-        .attr("class", "line")
-        .attr("d", line);
-
-    svg.on("click", function() {
-        matchData = !matchData;
-        if (matchData)
-          domain = d3.extent(data, function(d) { return d.concentration; });
-        else
-          domain = [0, 5000];
-        console.log("on click");
-        y.domain(domain);
-        var t = svg.transition().duration(750);
-        t.select(".y.axis").call(yAxis);
-        t.select(".line").attr("d", line(data));
-      });
   
-    var first = new google.maps.LatLng(#{@flight.flight_datas.first.lat}, #{@flight.flight_datas.first.lon});
-    var bounds = new google.maps.LatLngBounds(first, first);
-    var points = [];
-    var offset = #{@flight.flight_datas.first.timestamp.to_i};
-    $("tbody.flight_datas tr").each(function(idx, tr){
-      var point = new google.maps.LatLng(parseFloat($(tr).data("lat")), parseFloat($(tr).data("lon")));
-      bounds.extend(point);
-      points.push(point);
-    });
-    
-    
-    var mapOptions = {
-      zoom: 8,
-      center: new google.maps.LatLng(#{@flight.flight_datas.first.lat}, #{@flight.flight_datas.first.lon}),
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    };
-    map = new google.maps.Map(document.getElementById('map'), mapOptions);
-    
-    var flightPath = new google.maps.Polyline({
-        path: points,
-        strokeColor: '#FF0000',
-        strokeOpacity: 1.0,
-        strokeWeight: 2
-    });
-    flightPath.setMap(map);
-    map.fitBounds(bounds);
-  }
+          var mapOptions = {
+            zoom: 8,
+            center: new google.maps.LatLng(#{@flight.flight_datas.first.lat}, #{@flight.flight_datas.first.lon}),
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+          };
+          map = new google.maps.Map(document.getElementById('map'), mapOptions);
   
+          var flightPath = new google.maps.Polyline({
+              path: points,
+              strokeColor: '#FF0000',
+              strokeOpacity: 1.0,
+              strokeWeight: 2
+          });
+          flightPath.setMap(map);
+          map.fitBounds(bounds);
+        }
 
-  
-  google.maps.event.addDomListener(window, 'load', initialize);
-  
+
+
+        google.maps.event.addDomListener(window, 'load', initialize);
+
