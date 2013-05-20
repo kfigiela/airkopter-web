@@ -1,8 +1,8 @@
 %table.table
   %thead
     %tr
-      %th Flight number
-      %th Flight date
+      %th Numer lotu
+      %th Data lotu
       %th 
   %tbody
   - @flights.each do |flight|
@@ -11,4 +11,4 @@
         AK 
         = flight.id
       %td= flight.created_at
-      %td= link_to "Details", flight
+      %td= link_to "Szczegóły", flight

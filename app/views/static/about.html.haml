@@ -1,0 +1,28 @@
+.row-fluid
+  .span6.offset3
+    %h1 O nas
+    :markdown
+      
+      W ostatnim czasie Kraków boryka się z problemem zanieczyszczenia powietrza co odbija się na komforcie życia oraz zdrowiu mieszkańców. W Krakowie istnieją tylko 3 stacje dokonujące pomiarów zanieczyszczeń co nie daje pełnego obrazu stanu rzeczy, dlatego postanowiliśmy stworzyć możliwość pomiarów nie tylko w różnych miejscach, ale również na różnych wysokościach. W ten sposób chcielibyśmy się przyczynić do wzrostu świadomości na temat zanieczyszczeń powietrza w naszym mieście.
+      
+      AirKRKopter składa się z trzech modułów:
+  
+      - quadkoptera opartego na platformie [AeroQuad](http://aeroquad.com),
+      - modułu telemetrycznego opartego na platformie [Raspberry Pi](http://www.raspberrypi.org),
+      - interfejsu webowego do przeglądania wyników (Ruby on Rails).
+  
+      ### Quadkopter
+  
+      Quadkopter jest rodzajem śmigłowca posiadającym 4 śmigła, które upraszczają konstrukcję, co w połączeniu z żyroskopami, akcelerometrami i magnetometrem umieszczonymi na pokładzie zapewnia dużą stabilność lotu. Po podłączeniu GPSa można zaprogramować trasę przelotu, co pozwoli w przyszłości na automatyzaję pomiarów jakości powietrza. Maksymalna wysokość lotu to około 300 metrów. Głównym ograniczeniem jest wrażliwośc na warunki atmosferyczne – loty nie mogą odbywać się w trakcie deszczu i przy silnym wietrze. Na szczęście w takich warunkach jakość powietrza z reguły ulega poprawie.
+  
+      ### Moduł telemetryczny
+  
+      Sercem modułu telemetrycznego jest mikrokomputer Raspberry Pi do którego podłączony jest moduł GPS oraz za pomocą Arduino podłączone są sensory pyłu, temperatury i wilgotności powietrza. Raspberry agreguje wyniki pomiarów z poszczególnych sensorów i przesyła jest w czasie rzeczywistym na serwer za pomocą połączenia 3G. Moduł jest autonomiczny, co oznacza, że można go wziąć ze sobą na przejażdżkę rowerową albo umieścić za oknem.
+      
+      Pomiary dokonywane są co około 30 sekund, ponieważ sensor pyłu potrzebuje uśrednić wyniki z takiego czasu. Dokładność pomiarów jest ograniczona – wykorzystaliśmy jeden z tańszych dostępnych czujników, ale modularna budowa pozwala na wykorzystanie innego – dokładniejszego.
+  
+      ![](#{asset_path 'telemetry.png'})
+    
+      ### Interfejs webowy
+      
+      Interfejs webowy pozwala na przeglądanie pomiarów zebranych przez moduł telemetryczny. Dla każdego lotu możemy wyświetlić trasę przelotu, wykres koncentracji pyłów w powietrzu oraz tabelę ze szczegółowymi wynikami pomiarów. Przeglądanie wyników jest również możliwe za pomocą urządzeń mobilnych.

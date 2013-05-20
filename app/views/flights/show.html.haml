@@ -1,7 +1,7 @@
-%h2 Flight AK #{@flight.id} @ #{@flight.created_at}
+%h2 Lot AK #{@flight.id} @ #{@flight.created_at}
 - if @flight.flight_datas.count == 0
   .well
-    %p No sensor data available for this flight.
+    %p Brak danych telemetrycznych dla podanego lotu
 - else
   .row-fluid
     .span4
@@ -13,11 +13,11 @@
       %table.table
         %thead
           %tr
-            %th Time
-            %th Concentration
-            %th Altitude
-            %th Temperature
-            %th Humidity
+            %th Czas
+            %th Wysokość
+            %th Stężenie
+            %th Temperatura
+            %th Wilgotność
         %tbody.flight_datas
           - @flight.flight_datas.order(:timestamp).each do |data|
             %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration, 'data-temperature' => data.temperature, 'data-humidity' => data.humidity}
@@ -107,7 +107,7 @@
               .attr("y", 6)
               .attr("dy", ".71em")
               .style("text-anchor", "end")
-              .text("Concentration");
+              .text("Stężeni");
 
           svg.append("path")
               .datum(data)
