@@ -7,25 +7,24 @@
     .span4
       .well
         #chart(style="width:100%; height:300px;")
-    .span4
       #map(style="width:100%; height:340px;")
-    .span4
+    .span8
       %table.table
         %thead
           %tr
             %th Czas
             %th Wysokość
-            %th Stężenie
+            %th Stężenie pyłu
             %th Temperatura
-            %th Wilgotność
+            %th Wilgotność powietrza
         %tbody.flight_datas
           - @flight.flight_datas.order(:timestamp).each do |data|
             %tr{'data-lat' => data.lat, 'data-lon' => data.lon, 'data-time' => data.timestamp.to_i, 'data-concentration' => data.concentration, 'data-temperature' => data.temperature, 'data-humidity' => data.humidity}
               %td= data.timestamp.strftime("%H:%M:%S")
               %td.numeric= data.altitude
               %td.numeric= data.concentration
-              %td.numeric= data.temperature
-              %td.numeric= data.humidity    
+              %td.numeric #{data.temperature}℃
+              %td.numeric #{data.humidity} %
 
       - content_for :header do
         = javascript_include_tag "http://d3js.org/d3.v3.min.js"
